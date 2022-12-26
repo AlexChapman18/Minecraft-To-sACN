@@ -1,5 +1,6 @@
 package com.Alex.minecraftsacn;
 
+import com.Alex.minecraftsacn.JavaSACN.sACNSocket;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraftforge.common.MinecraftForge;
@@ -16,18 +17,25 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.stream.Collectors;
+import java.net.SocketException;
+import java.util.Arrays;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod(MinecraftSACN.MOD_ID)
 public class MinecraftSACN
 {
     public static final String MOD_ID = "minecraftsacn";
+    public static byte[] liveDMXValues = new byte[512];
+    public static int liveUniverse = 1;
+    public static sACNSocket liveSocket;
+    public static boolean liveDebug = true;
 
     // Directly reference a log4j logger.
     private static final Logger LOGGER = LogManager.getLogger();
 
     public MinecraftSACN() {
+        Arrays.fill(liveDMXValues, (byte) 0);
+
         // Register the setup method for modloading
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
         // Register the enqueueIMC method for modloading
@@ -41,8 +49,13 @@ public class MinecraftSACN
         MinecraftForge.EVENT_BUS.register(this);
     }
 
-    private void setup(final FMLCommonSetupEvent event)
-    {
+    private void setup(final FMLCommonSetupEvent event){
+        try{
+            MinecraftSACN.liveSocket = new sACNSocket();
+        } catch (SocketException e){
+            System.out.println(e);
+        }
+
         // some preinit code
         LOGGER.info("HELLO FROM PREINIT");
         LOGGER.info("DIRT BLOCK >> {}", Blocks.DIRT.getRegistryName());
@@ -59,7 +72,7 @@ public class MinecraftSACN
     }
 
     private void processIMC(final InterModProcessEvent event)
-    {    }
+    {}
     // You can use SubscribeEvent and let the Event Bus discover methods to call
     @SubscribeEvent
     public void onServerStarting(FMLServerStartingEvent event) {
